@@ -6,15 +6,17 @@ import Facebook from './images/facebook.jpg';
 import axios from 'axios';
 import './App.css'
 import { LoginSocialGoogle, LoginSocialTwitter, LoginSocialFacebook} from 'reactjs-social-login';
-const CLIENT_ID = '771uzz96w5lajg';
-const REDIRECT_URL = 'http://localhost:3000';
-const OAUTH_URL = 'https://www.linkedin.com/oauth/v2/authorization?response_type=code';
-const SCOPE = 'r_liteprofile%20r_emailaddress';
-const STATE = '123456';
+
+const CLIENT_ID = '*',
+REDIRECT_URL = '*', 
+OAUTH_URL = '*',
+SCOPE = '*',
+STATE = '*',
+GOOGLE_CLIENT_ID = '*';
 
 function App() {
   
-  const [providet, setProvider] = useState('');
+  const [provider, setProvider] = useState('');
 
   const getCodeFromWindowURL = url => {
     const popupWindowURL = new URL(url);
@@ -23,7 +25,6 @@ function App() {
 
   const handlePostMessage = event => {
     if (event.data.type === 'code') {
-      const { code } = event.data;
       getUserCredentials(event.data.code);
     }
   };
@@ -32,7 +33,7 @@ function App() {
     axios
       .get(`http://localhost:5000/getUserCredentials?code=${code}`)
       .then(res => {
-        const user = res.data;
+        setProvider(res.data.userProfile.localizedFirstName + " " + res.data.userProfile.localizedLastName)
       });
   };
 
@@ -61,51 +62,35 @@ function App() {
     console.log('window.opener',  window.opener !== window);
     if (window.opener && window.opener !== window) {
       const code = getCodeFromWindowURL(window.location.href);
-      console.log('code', code);
       window.opener.postMessage({'type': 'code', 'code': code}, 'http://localhost:3000')
       window.close();
     }
     window.addEventListener('message', handlePostMessage);
-}, [])
+}, [provider])
 
   return (
     <div className="App">
-      <div className="linkedin">
-        <img onClick={showPopup } src={linkedin} alt="Linkedin"/>
-      </div>
-      <div className="google">
-        <LoginSocialGoogle
-            client_id={"79390217356-d6fku2ggv0vk1cgit3rmp8sdebsi1j5b.apps.googleusercontent.com"}
-            onResolve={( (provider) => {
-              console.log('provider', provider);
-              setProvider(provider)
-            })}
-        >
-            <img src={Google} alt="google"/>
-        </LoginSocialGoogle>
-      </div>
-      <div className="twitter">
-        <LoginSocialTwitter
-            client_id={'eTY2R0FaQ0oxNVZZRlpRSW1ZR0I6MTpjaQ'}
-            client_secret={'uKYYzLup3mmSAstvF4lC2MeX7sIepytTmcBDbynXTN86GpSAzP'}
-            redirect_uri={"http://localhost:3000/"}
-            onResolve={(provider)=> {
-              setProvider(provider)
-            }}
-          >
-            <img src={Twitter} alt="twiiter"/>
-        </LoginSocialTwitter>
-      </div>
-      <div className='facebook'>
-        <LoginSocialFacebook 
-          appId='1432856887142206'
-          onResolve={( provider ) => {
-            console.log('provider', provider);
-            setProvider(provider)
-          }}>
-          <img src={Facebook} alt="facebook"/>
-        </LoginSocialFacebook>
-      </div>
+      <h1 onClick={()=> console.log(provider)}>Social Login</h1>
+      {provider ===  '' ? 
+        <div className='social-login'>
+          <div className="linkedin">
+            <img onClick={showPopup } src={linkedin} alt="Linkedin"/>
+          </div>
+          <div className="google">
+            <LoginSocialGoogle
+                client_id={GOOGLE_CLIENT_ID}
+                onResolve={( (provider) => {
+                  console.log('provider', provider);
+                  setProvider(provider.data.given_name + " " + provider.data.family_name)
+                })}
+            >
+                <img src={Google} alt="google"/>
+            </LoginSocialGoogle>
+          </div>
+        </div>
+        : 
+        <h1>{provider}</h1>
+      }
     </div>
   );
 }
